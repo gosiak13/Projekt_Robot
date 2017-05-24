@@ -51,7 +51,7 @@ public class robot extends JFrame {
         animowane.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 	objRoot.addChild(animacja);
         animacja.addChild(animowane);
-        
+         
 	// Create a simple shape leaf node, add it to the scene graph.
 	
          Appearance  wygladCylindra = new Appearance();
