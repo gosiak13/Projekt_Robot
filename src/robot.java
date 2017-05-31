@@ -20,6 +20,7 @@ import java.util.Enumeration;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.vecmath.Point3d;
+import javax.vecmath.Vector3d;
 
 /**
  *
@@ -28,17 +29,20 @@ import javax.vecmath.Point3d;
 public class robot extends JFrame {
     private SimpleUniverse univ = null;
     private BranchGroup scene = null;
-
     private TransformGroup animacja;
     private RotateBehavior awtBehavior;
-    public float dlugoscCylindra=2f;
+    public float dlugoscCylindra=1f;
     private Transform3D trans= new Transform3D();
+    private Transform3D trans1= new Transform3D();
     private Transform3D p_cylindra3= new Transform3D();
     private float xloc=0f;
-    private TransformGroup animowane;Appearance  wygladCylindra3 = new Appearance();
+    private TransformGroup animowane;
+    private TransformGroup animowane1;
+    Appearance  wygladCylindra3 = new Appearance();
     private Cylinder cylinder3 = new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);
     public float angle=0f;
     public boolean prawo;
+     TransformGroup transformacja_c3 = new TransformGroup(p_cylindra3);  
       
     public BranchGroup createSceneGraph() {
 	// Create the root of the branch graph
@@ -65,6 +69,7 @@ public class robot extends JFrame {
         animowane.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 	objRoot.addChild(animacja);
         animacja.addChild(animowane);
+        animowane.addChild(animowane1);
         
 	// Create a simple shape leaf node, add it to the scene graph.
         
@@ -267,13 +272,15 @@ public class robot extends JFrame {
 
         // processStimulus to rotate the cube
         public void processStimulus(Enumeration criteria) {
+            
             if(prawo)
-             angle += Math.toRadians(1.0);
+                angle += Math.toRadians(1.0);
             else
                  angle -= Math.toRadians(1.0);
             trans.rotY(angle);
             
             trans.setTranslation(new Vector3f((float) sin(angle),xloc,(float) cos(angle)-1f)); 
+            trans.setScale(new Vector3d(dlugoscCylindra,1,1));
             transformGroup.setTransform(trans);
             wakeupOn(criterion);
         }
@@ -291,6 +298,8 @@ public class robot extends JFrame {
         rotateButton1 = new javax.swing.JButton();
         rotateButton3 = new javax.swing.JButton();
         rotateButton4 = new javax.swing.JButton();
+        rotateButton5 = new javax.swing.JButton();
+        rotateButton6 = new javax.swing.JButton();
         drawingPanel = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -322,6 +331,18 @@ public class robot extends JFrame {
                 rotate4ButtonActionPerformed(evt);
             }
         });
+        rotateButton5.setText("blizej");
+        rotateButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rotate5ButtonActionPerformed(evt);
+            }
+        });
+        rotateButton6.setText("dalej");
+        rotateButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rotate6ButtonActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -329,6 +350,8 @@ public class robot extends JFrame {
         guiPanel.add(rotateButton1, gridBagConstraints);
         guiPanel.add(rotateButton3, gridBagConstraints);
         guiPanel.add(rotateButton4, gridBagConstraints);
+        guiPanel.add(rotateButton5, gridBagConstraints);
+        guiPanel.add(rotateButton6, gridBagConstraints);
 
         getContentPane().add(guiPanel, java.awt.BorderLayout.NORTH);
 
@@ -373,8 +396,30 @@ public class robot extends JFrame {
      // cylinder3=new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);
        awtBehavior.rotate(); 
        //animowane.setTransform(trans);
+    } 
+    private void rotate5ButtonActionPerformed(java.awt.event.ActionEvent evt) {                                             
+       dlugoscCylindra=dlugoscCylindra-0.01f;
+       
+       trans.rotY(angle);
+        
+     trans.setTranslation(new Vector3f((float) sin(angle),xloc,(float) cos(angle)-1f)); 
+       trans.setScale(new Vector3d(dlugoscCylindra,1,1));
+      
+     animowane.setTransform(trans);
+
+       //animowane.setTransform(trans);
      
     }     
+      private void rotate6ButtonActionPerformed(java.awt.event.ActionEvent evt) {                                             
+        dlugoscCylindra=dlugoscCylindra+0.01f;
+     // cylinder3=new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);
+       trans.rotY(angle);
+        
+     trans.setTranslation(new Vector3f((float) sin(angle),xloc,(float) cos(angle)-1f)); 
+       trans.setScale(new Vector3d(dlugoscCylindra,1,1));
+      
+     animowane.setTransform(trans);
+    }
 
 
     /**
@@ -394,4 +439,6 @@ public class robot extends JFrame {
     private javax.swing.JButton rotateButton1;
     private javax.swing.JButton rotateButton3;
     private javax.swing.JButton rotateButton4;
+    private javax.swing.JButton rotateButton5;
+    private javax.swing.JButton rotateButton6;
 }
