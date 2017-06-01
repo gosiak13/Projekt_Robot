@@ -3,7 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-//package robot;
+//package projektrobot;
+import com.sun.j3d.utils.applet.MainFrame;
 import com.sun.j3d.utils.geometry.*;
 import javax.media.j3d.*;
 import javax.swing.*;
@@ -14,6 +15,11 @@ import javax.vecmath.Color3f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 import com.sun.j3d.utils.geometry.Box;
+import java.applet.Applet;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import java.util.Enumeration;
@@ -26,26 +32,34 @@ import javax.vecmath.Vector3d;
  *
  * @author Dawid
  */
-public class robot extends JFrame {
+public class robot extends Applet implements ActionListener, KeyListener {
+    
     private SimpleUniverse univ = null;
-    private BranchGroup scene = null;
-    private TransformGroup animacja;
-    private RotateBehavior awtBehavior;
-    public float dlugoscCylindra=1f;
-    private Transform3D trans= new Transform3D();
-    private Transform3D trans1= new Transform3D();
-    private Transform3D p_cylindra3= new Transform3D();
-    private float xloc=0f;
-    private TransformGroup animowane;
-    private TransformGroup animowane1;
-    Appearance  wygladCylindra3 = new Appearance();
+    private BranchGroup scene = null;    
+    private Timer timer;    
+    private TransformGroup animacja;    
+    private RotateBehavior awtBehavior;    
+    public float dlugoscCylindra=1.5f;    
+    public float polozenieCylindra=0f;    
+    private Transform3D trans= new Transform3D();    
+    private Transform3D trans1= new Transform3D();     
+    private Transform3D p_cylindra3= new Transform3D();    
+    private float yloc=0f;    
+    private TransformGroup animowane;    
+    private TransformGroup animowane1;     
+    Appearance  wygladCylindra3 = new Appearance();    
     private Cylinder cylinder3 = new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);
-    public float angle=0f;
+    public float angle=0f;    
     public boolean prawo;
-     TransformGroup transformacja_c3 = new TransformGroup(p_cylindra3);  
-      
+    private Button go = new Button("Go");
+    TransformGroup transformacja_c3 = new TransformGroup(p_cylindra3);   
+    private Transform3D trans2 = new Transform3D();    
+    private boolean os;
+    public float speed=1f;
+    
+    
     public BranchGroup createSceneGraph() {
-	// Create the root of the branch graph
+	
 	BranchGroup objRoot = new BranchGroup();
         
         Color3f kolor_swiatla_tla      = new Color3f(0.5f, 0.4f, 0.91f);
@@ -58,22 +72,22 @@ public class robot extends JFrame {
         Vector3f kierunek_swiatla_kier = new Vector3f(4.0f, -5.0f, -2.0f);
         Vector3f kierunek_swiatla_sto  = new Vector3f(-4.0f, -5.0f, -2.0f);
 
-
 	// Create the transform group node and initialize it to the
 	// identity.  Enable the TRANSFORM_WRITE capability so that
 	// our behavior code can modify it at runtime.  Add it to the
 	// root of the subgraph.
 	animacja = new TransformGroup();
         animowane=new TransformGroup();
+        animowane1=new TransformGroup();
 	animacja.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
         animowane.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        animowane1.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 	objRoot.addChild(animacja);
         animacja.addChild(animowane);
         animowane.addChild(animowane1);
         
-	// Create a simple shape leaf node, add it to the scene graph.
         
-        //swiatla
+	//swiatla
         AmbientLight swiatlo_tla = new AmbientLight(kolor_swiatla_tla);
         DirectionalLight swiatlo_kier = new DirectionalLight(kolor_swiatla_kier, kierunek_swiatla_kier);
         PointLight swiatlo_pnkt = new PointLight(kolor_swiatla_pnkt, new Point3f(-0.5f,0.5f,-0.5f), new Point3f(0.1f,0.1f,0.1f));
@@ -103,7 +117,6 @@ public class robot extends JFrame {
         Cylinder cylinder = new Cylinder(0.4f, 0.4f, wygladCylindra);
         
         
-        
         Transform3D  p_cylindra   = new Transform3D();
         p_cylindra.set(new Vector3f(0.0f,-0.5f,-1.0f));
       
@@ -131,83 +144,83 @@ public class robot extends JFrame {
         animacja.addChild(transformacja_c2);
 
 
-      //PUDEŁKO
-      Appearance  wygladboxa = new Appearance();
-      wygladboxa.setMaterial(material_walca);
-      wygladboxa.setColoringAttributes(cattr);
-      Box box = new Box(0.15f, 0.06f, 0.15f, wygladboxa);
-      
-     // Vector3f polozenieboxa = new Vector3f(0.0f,1.5f,-1.0f);
-      float[] polozenieboxa = new float[3];
-      polozenieboxa[0] = 0f;//stale
-      polozenieboxa[1] = 1.3f;//<=1.5f, >=0.25f
-      polozenieboxa[2] = -1f;//stale
-      
-      Transform3D  p_boxa   = new Transform3D();
-      p_boxa.set(new Vector3f(polozenieboxa[0],polozenieboxa[1],polozenieboxa[2]));
-      
-      TransformGroup transformacja_b = new TransformGroup(p_boxa);
-      transformacja_b.addChild(box);
-      animowane.addChild(transformacja_b);
-     
-      
-        // float dlugoscCylindra=1f;//>=0.2f
+        //PUDEŁKO
+        Appearance  wygladboxa = new Appearance();
+        wygladboxa.setMaterial(material_walca);
+        wygladboxa.setColoringAttributes(cattr);
+        Box box = new Box(0.4f, 0.06f, 0.15f, wygladboxa);
+
+       // Vector3f polozenieboxa = new Vector3f(0.0f,1.5f,-1.0f);
+        float[] polozenieboxa = new float[3];
+        polozenieboxa[0] = 0f;//stale
+        polozenieboxa[1] = 1.3f;//<=1.5f, >=0.25f
+        polozenieboxa[2] = -1f;//stale
+
+        Transform3D  p_boxa   = new Transform3D();
+        p_boxa.set(new Vector3f(polozenieboxa[0],polozenieboxa[1],polozenieboxa[2]));
+
+        TransformGroup transformacja_b = new TransformGroup(p_boxa);
+        transformacja_b.addChild(box);
+        animowane.addChild(transformacja_b);
+
+
+          // float dlugoscCylindra=1f;//>=0.2f
         //CYLINDER3
-      Appearance  wygladCylindra3 = new Appearance();
-      wygladCylindra3.setMaterial(material_walca2);
-      wygladCylindra3.setColoringAttributes(cattr);
-      Cylinder cylinder3 = new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);
+        Appearance  wygladCylindra3 = new Appearance();
+        wygladCylindra3.setMaterial(material_walca2);
+        wygladCylindra3.setColoringAttributes(cattr);
+        Cylinder cylinder3 = new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);
 
-      Transform3D  p_cylindra3   = new Transform3D();
-      p_cylindra3.set(new Vector3f(polozenieboxa[0]+(dlugoscCylindra/2),polozenieboxa[1],polozenieboxa[2]));
-      
-      Transform3D  tmp_rot      = new Transform3D();
-      tmp_rot.rotZ(Math.PI/2);
+        Transform3D  p_cylindra3   = new Transform3D();
+        p_cylindra3.set(new Vector3f(polozenieboxa[0]+(dlugoscCylindra/2),polozenieboxa[1],polozenieboxa[2]));
 
-      p_cylindra3.mul(tmp_rot);
-      
-      TransformGroup transformacja_c3 = new TransformGroup(p_cylindra3);
-      transformacja_c3.addChild(cylinder3);
-      animowane.addChild(transformacja_c3);
+        Transform3D  tmp_rot      = new Transform3D();
+        tmp_rot.rotZ(Math.PI/2);
+
+        p_cylindra3.mul(tmp_rot);
+
+        TransformGroup transformacja_c3 = new TransformGroup(p_cylindra3);
+        transformacja_c3.addChild(cylinder3);
+        animowane1.addChild(transformacja_c3);
      
-      //CHWYTAK
-      Appearance  wygladdlon = new Appearance();
-      wygladdlon.setColoringAttributes(new ColoringAttributes(0.0f,1.0f,0.0f,ColoringAttributes.NICEST));
-      Box dlon = new Box(0.04f, 0.07f, 0.15f, wygladdlon);
+        //CHWYTAK
+        Appearance  wygladdlon = new Appearance();
+        wygladdlon.setColoringAttributes(new ColoringAttributes(0.0f,1.0f,0.0f,ColoringAttributes.NICEST));
+        Box dlon = new Box(0.04f, 0.07f, 0.15f, wygladdlon);
+
+        Transform3D  p_dlon   = new Transform3D();
+        p_dlon.set(new Vector3f(polozenieboxa[0]+(dlugoscCylindra),polozenieboxa[1],polozenieboxa[2]));
+
+        TransformGroup transformacja_dlon = new TransformGroup(p_dlon);
+        transformacja_dlon.addChild(dlon);
+        animowane1.addChild(transformacja_dlon);
+
+        ////////////////////////////////////////
       
-      Transform3D  p_dlon   = new Transform3D();
-      p_dlon.set(new Vector3f(polozenieboxa[0]+(dlugoscCylindra),polozenieboxa[1],polozenieboxa[2]));
-      
-      TransformGroup transformacja_dlon = new TransformGroup(p_dlon);
-      transformacja_dlon.addChild(dlon);
-      animowane.addChild(transformacja_dlon);
-      
-      ////////////////////////////////////////
-      
-      Appearance  wygladpalce = new Appearance();
-      wygladpalce.setColoringAttributes(new ColoringAttributes(1.0f,0.0f,0.0f,ColoringAttributes.NICEST));
-      Box palce = new Box(0.1f, 0.08f, 0.04f, wygladpalce);
-      
-      Transform3D  p_palce   = new Transform3D();
-      p_palce.set(new Vector3f(polozenieboxa[0]+dlugoscCylindra+0.14f,polozenieboxa[1],polozenieboxa[2]-0.1f));
-      
-      TransformGroup transformacja_palce = new TransformGroup(p_palce);
-      transformacja_palce.addChild(palce);
-      animowane.addChild(transformacja_palce);
-      
-      ////////////////////////////////////////
-      
-      Appearance  wygladkciuk = new Appearance();
-      wygladkciuk.setColoringAttributes(new ColoringAttributes(0.0f,0.0f,1.0f,ColoringAttributes.NICEST));
-      Box kciuk = new Box(0.1f, 0.08f, 0.04f, wygladkciuk);
-      
-      Transform3D  p_kciuk   = new Transform3D();
-      p_kciuk.set(new Vector3f(polozenieboxa[0]+dlugoscCylindra+0.14f,polozenieboxa[1],polozenieboxa[2]+0.1f));
-      
-      TransformGroup transformacja_kciuk = new TransformGroup(p_kciuk);
-      transformacja_kciuk.addChild(kciuk);
-      animowane.addChild(transformacja_kciuk);
-	// create the RotateBehavior	
+        Appearance  wygladpalce = new Appearance();
+        wygladpalce.setColoringAttributes(new ColoringAttributes(1.0f,0.0f,0.0f,ColoringAttributes.NICEST));
+        Box palce = new Box(0.1f, 0.08f, 0.04f, wygladpalce);
+
+        Transform3D  p_palce   = new Transform3D();
+        p_palce.set(new Vector3f(polozenieboxa[0]+dlugoscCylindra+0.14f,polozenieboxa[1],polozenieboxa[2]-0.1f));
+
+        TransformGroup transformacja_palce = new TransformGroup(p_palce);
+        transformacja_palce.addChild(palce);
+        animowane1.addChild(transformacja_palce);
+
+        ////////////////////////////////////////
+
+        Appearance  wygladkciuk = new Appearance();
+        wygladkciuk.setColoringAttributes(new ColoringAttributes(0.0f,0.0f,1.0f,ColoringAttributes.NICEST));
+        Box kciuk = new Box(0.1f, 0.08f, 0.04f, wygladkciuk);
+
+        Transform3D  p_kciuk   = new Transform3D();
+        p_kciuk.set(new Vector3f(polozenieboxa[0]+dlugoscCylindra+0.14f,polozenieboxa[1],polozenieboxa[2]+0.1f));
+
+        TransformGroup transformacja_kciuk = new TransformGroup(p_kciuk);
+        transformacja_kciuk.addChild(kciuk);
+        animowane1.addChild(transformacja_kciuk);
+          // create the RotateBehavior	
         
 	BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
 						   100.0);
@@ -217,39 +230,119 @@ public class robot extends JFrame {
 
 	return objRoot;
     }
-    private Canvas3D createUniverse() {
-	GraphicsConfiguration config =
-	    SimpleUniverse.getPreferredConfiguration();
+  
+    public void keyPressed(KeyEvent e) {
 
-	Canvas3D c = new Canvas3D(config);
+   if (e.getKeyChar()=='w') {if(yloc<=0.15f)yloc = yloc + speed*.01f;os=false;}
 
-	univ = new SimpleUniverse(c);
-         Transform3D przesuniecie_obserwatora = new Transform3D();
-        przesuniecie_obserwatora.set(new Vector3f(0.0f,0.3f,6.0f));
+   if (e.getKeyChar()=='s') {if(yloc>=-1.5f)yloc = yloc - speed*.01f;os=false;}
+   if (e.getKeyChar()=='a') {if(polozenieCylindra>=-0.37f)polozenieCylindra = polozenieCylindra - speed*.01f;
+   os=true;
+   }
 
-        univ.getViewingPlatform().getViewPlatformTransform().setTransform(przesuniecie_obserwatora);
-	// This will move the ViewPlatform back a bit so the
-	// objects in the scene can be viewed.
-      //  univ.getViewingPlatform().setNominalViewingTransform();
+   if (e.getKeyChar()=='d') {if(polozenieCylindra<=0.37f)polozenieCylindra = polozenieCylindra + speed*.01f;
+   os=true;}
+   if (e.getKeyChar()=='q') {angle = angle + speed*.01f;
+   os=false;}
 
-	// Ensure at least 5 msec per frame (i.e., < 200Hz)
-	//univ.getViewer().getView().setMinimumFrameCycleTime(5);
+   if (e.getKeyChar()=='e') {angle = angle - speed*.01f;os=false;}
+if (e.getKeyChar()=='p') {speed=speed*2f;}
+if (e.getKeyChar()=='o') {speed=speed/2f;}
+}
 
-	return c;
-    }
+public void keyReleased(KeyEvent e){
+
+   // Invoked when a key has been released.
+
+}
+
+public void keyTyped(KeyEvent e){
+
+   //Invoked when a key has been typed.
+
+}
+
+public void actionPerformed(ActionEvent e ) {
+
+   // start timer when button is pressed
+
+   if (e.getSource()==go){
+
+      if (!timer.isRunning()) {
+
+         timer.start();
+
+      }
+
+   }
+
+   else {
+
+       if(!os){
+     trans.rotY(angle);
+       trans.setTranslation(new Vector3f((float) sin(angle),yloc,(float) cos(angle)-1f)); 
+     animowane.setTransform(trans);  
+       }
+       if(os){
+        
+          
+          trans1.setTranslation(new Vector3f(polozenieCylindra+(float) sin(angle),yloc,(float) cos(angle)-1f)); 
+     animowane1.setTransform(trans1);   
+       }
+ 
+
+   
+
+   }
+
+}
+
+
     public robot() {
         // Initialize the GUI components
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
-        initComponents();
+      //  initComponents();
+      setLayout(new BorderLayout());
 
-        // Create Canvas3D and SimpleUniverse; add canvas to drawing panel
-        Canvas3D c = createUniverse();
-        drawingPanel.add(c, java.awt.BorderLayout.CENTER);
+   GraphicsConfiguration config =
 
-        // Create the content branch and add it to the universe
-        scene = createSceneGraph();
-        univ.addBranchGraph(scene);
+      SimpleUniverse.getPreferredConfiguration();
+
+   Canvas3D c = new Canvas3D(config);
+
+   add("Center", c);
+
+   c.addKeyListener(this);
+
+   timer = new Timer(10,this);
+
+   //timer.start();
+
+   Panel p =new Panel();
+
+   p.add(go);
+
+   add("North",p);
+
+   go.addActionListener(this);
+
+   go.addKeyListener(this);
+
+     Transform3D przesuniecie_obserwatora = new Transform3D();
+        przesuniecie_obserwatora.set(new Vector3f(0.0f,0.3f,6.0f));
+// Create a simple scene and attach it to the virtual universe
+
+   BranchGroup scene = createSceneGraph();
+
+   SimpleUniverse u = new SimpleUniverse(c);
+
+   u.getViewingPlatform().getViewPlatformTransform().setTransform(przesuniecie_obserwatora);
+
+   u.addBranchGraph(scene);
+      
     }
+
+    
     class RotateBehavior extends Behavior {
 
         private TransformGroup transformGroup;
@@ -272,155 +365,23 @@ public class robot extends JFrame {
 
         // processStimulus to rotate the cube
         public void processStimulus(Enumeration criteria) {
-            
             if(prawo)
-                angle += Math.toRadians(1.0);
+             angle += Math.toRadians(1.0);
             else
                  angle -= Math.toRadians(1.0);
-            trans.rotY(angle);
+            /*trans.rotY(angle);
             
-            trans.setTranslation(new Vector3f((float) sin(angle),xloc,(float) cos(angle)-1f)); 
-            trans.setScale(new Vector3d(dlugoscCylindra,1,1));
-            transformGroup.setTransform(trans);
+             trans.setTranslation(new Vector3f((float) sin(angle),yloc,(float) cos(angle)-1f)); 
+             
+            transformGroup.setTransform(trans);*/
             wakeupOn(criterion);
         }
-
         // when the mouse is clicked, postId for the behavior
         void rotate() {
             postId(ROTATE);
         }
     }
-    private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
-
-        guiPanel = new javax.swing.JPanel();
-        rotateButton = new javax.swing.JButton();
-        rotateButton1 = new javax.swing.JButton();
-        rotateButton3 = new javax.swing.JButton();
-        rotateButton4 = new javax.swing.JButton();
-        rotateButton5 = new javax.swing.JButton();
-        rotateButton6 = new javax.swing.JButton();
-        drawingPanel = new javax.swing.JPanel();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Swing Interaction Test");
-
-        guiPanel.setLayout(new java.awt.GridBagLayout());
-
-        rotateButton.setText("dol");
-        rotateButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rotateButtonActionPerformed(evt);
-            }
-        });
-        rotateButton1.setText("gora");
-        rotateButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rotate1ButtonActionPerformed(evt);
-            }
-        });
-        rotateButton3.setText("lewo");
-        rotateButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rotate3ButtonActionPerformed(evt);
-            }
-        });
-        rotateButton4.setText("prawo");
-        rotateButton4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rotate4ButtonActionPerformed(evt);
-            }
-        });
-        rotateButton5.setText("blizej");
-        rotateButton5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rotate5ButtonActionPerformed(evt);
-            }
-        });
-        rotateButton6.setText("dalej");
-        rotateButton6.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rotate6ButtonActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        guiPanel.add(rotateButton, gridBagConstraints);
-        guiPanel.add(rotateButton1, gridBagConstraints);
-        guiPanel.add(rotateButton3, gridBagConstraints);
-        guiPanel.add(rotateButton4, gridBagConstraints);
-        guiPanel.add(rotateButton5, gridBagConstraints);
-        guiPanel.add(rotateButton6, gridBagConstraints);
-
-        getContentPane().add(guiPanel, java.awt.BorderLayout.NORTH);
-
-        drawingPanel.setPreferredSize(new java.awt.Dimension(700, 700));
-        drawingPanel.setLayout(new java.awt.BorderLayout());
-        getContentPane().add(drawingPanel, java.awt.BorderLayout.CENTER);
-
-        pack();
-    }// </editor-fold> 
-    
-    private void rotateButtonActionPerformed(java.awt.event.ActionEvent evt) {                                             
-        xloc=xloc-0.01f;
-        
-        trans.rotY(angle);
-        trans.setTranslation(new Vector3f((float) sin(angle),xloc,(float) cos(angle)-1f)); 
-        animowane.setTransform(trans);
-    }
-    private void rotate1ButtonActionPerformed(java.awt.event.ActionEvent evt) {                                             
-        xloc=xloc+0.01f;
-       
-        trans.rotY(angle);
-        trans.setTranslation(new Vector3f((float) sin(angle),xloc,(float) cos(angle)-1f)); 
-        animowane.setTransform(trans);
-    }  
-    private void rotate3ButtonActionPerformed(java.awt.event.ActionEvent evt) {                                             
-        prawo=false;
-        if(prawo)
-             angle += Math.toRadians(1.0);
-            else
-                 angle -= Math.toRadians(1.0);
-      // cylinder3=new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);
-      // trans.
-        //animowane.setTransform(trans);
-        awtBehavior.rotate();
-    }
-    private void rotate4ButtonActionPerformed(java.awt.event.ActionEvent evt) {                                             
-        prawo=true;
-        if(prawo)
-             angle += Math.toRadians(1.0);
-            else
-                 angle -= Math.toRadians(1.0);
-     // cylinder3=new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);
-       awtBehavior.rotate(); 
-       //animowane.setTransform(trans);
-    } 
-    private void rotate5ButtonActionPerformed(java.awt.event.ActionEvent evt) {                                             
-       dlugoscCylindra=dlugoscCylindra-0.01f;
-       
-       trans.rotY(angle);
-        
-     trans.setTranslation(new Vector3f((float) sin(angle),xloc,(float) cos(angle)-1f)); 
-       trans.setScale(new Vector3d(dlugoscCylindra,1,1));
-      
-     animowane.setTransform(trans);
-
-       //animowane.setTransform(trans);
-     
-    }     
-      private void rotate6ButtonActionPerformed(java.awt.event.ActionEvent evt) {                                             
-        dlugoscCylindra=dlugoscCylindra+0.01f;
-     // cylinder3=new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);
-       trans.rotY(angle);
-        
-     trans.setTranslation(new Vector3f((float) sin(angle),xloc,(float) cos(angle)-1f)); 
-       trans.setScale(new Vector3d(dlugoscCylindra,1,1));
-      
-     animowane.setTransform(trans);
-    }
-
+  
 
     /**
      * @param args the command line arguments
@@ -428,11 +389,14 @@ public class robot extends JFrame {
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new robot().setVisible(true);
+                robot PR=new robot();
+              
+
+   PR.addKeyListener(PR);
+                MainFrame mf = new MainFrame(PR, 1200, 1200); 
             }
         });
-    } 
-    
+    }     
     private javax.swing.JPanel drawingPanel;
     private javax.swing.JPanel guiPanel;
     private javax.swing.JButton rotateButton;
