@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-//package projektrobot;
+//package robot;
 import com.sun.j3d.utils.applet.MainFrame;
+import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
 import com.sun.j3d.utils.geometry.*;
 import javax.media.j3d.*;
 import javax.swing.*;
@@ -27,10 +28,18 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
+import java.awt.*;
+import java.awt.event.*;
+import com.sun.j3d.utils.universe.*;
+import com.sun.j3d.utils.geometry.ColorCube;
+import com.sun.j3d.utils.image.TextureLoader;
+import javax.media.j3d.*;
+import javax.vecmath.*;
+import java.awt.GraphicsConfiguration;
 
 /**
  *
- * @author Dawid
+ * @author Dawid i trochę Gosia :D
  */
 public class robot extends Applet implements ActionListener, KeyListener {
     
@@ -40,28 +49,38 @@ public class robot extends Applet implements ActionListener, KeyListener {
     private TransformGroup animacja;    
     private RotateBehavior awtBehavior;    
     public float dlugoscCylindra=1.5f;    
-    public float polozenieCylindra=0f;    
-    private Transform3D trans= new Transform3D();    
+    public float polozenieCylindra=0f;   
+    private Transform3D trans= new Transform3D();
+    private Transform3D trans3= new Transform3D();  
     private Transform3D trans1= new Transform3D();     
     private Transform3D p_cylindra3= new Transform3D();    
     private float yloc=0f;    
     private TransformGroup animowane;    
-    private TransformGroup animowane1;     
-    Appearance  wygladCylindra3 = new Appearance();    
-    private Cylinder cylinder3 = new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);
-    public float angle=0f;    
-    public boolean prawo;
-    private Button go = new Button("Go");
+    private TransformGroup animowane2;    
+    private TransformGroup animowane1;   
+    Appearance  wygladCylindra3 = new Appearance();   
+    private Cylinder cylinder3 = new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);    
+    public float angle=0f;   
+    public boolean prawo;   
+    private Button go = new Button("Go");    
+    private Button reset = new Button("Reset");   
+    private Button nagraj = new Button("Nagraj");    
+    private Button odtworz = new Button("Odtwórz");
+   
     TransformGroup transformacja_c3 = new TransformGroup(p_cylindra3);   
-    private Transform3D trans2 = new Transform3D();    
-    private boolean os;
-    public float speed=1f;
+    private Transform3D trans2 = new Transform3D();   
+    private boolean os;   
+    public float speed=1f;   
+    private float polBox=2f;   
+    public boolean polaczone=false;    
+    public Group box1;
     
     
     public BranchGroup createSceneGraph() {
 	
 	BranchGroup objRoot = new BranchGroup();
         
+        objRoot.setCapability(Group.ALLOW_CHILDREN_EXTEND) ;
         Color3f kolor_swiatla_tla      = new Color3f(0.5f, 0.4f, 0.91f);
         Color3f kolor_swiatla_kier     = new Color3f(1.0f, 0.5f, 0.0f);
         Color3f kolor_swiatla_pnkt     = new Color3f(0.0f, 1.0f, 0.0f);
@@ -79,12 +98,15 @@ public class robot extends Applet implements ActionListener, KeyListener {
 	animacja = new TransformGroup();
         animowane=new TransformGroup();
         animowane1=new TransformGroup();
+        animowane2=new TransformGroup();
 	animacja.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
         animowane.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
         animowane1.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        animowane2.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 	objRoot.addChild(animacja);
         animacja.addChild(animowane);
         animowane.addChild(animowane1);
+        objRoot.addChild(animowane2);
         
         
 	//swiatla
@@ -102,6 +124,72 @@ public class robot extends Applet implements ActionListener, KeyListener {
         objRoot.addChild(swiatlo_kier);
         objRoot.addChild(swiatlo_pnkt);
         objRoot.addChild(swiatlo_sto);
+        
+        Background background = new Background(new Color3f(0.0f,0.0f,0.5f));     
+        background.setApplicationBounds(obszar_ogr);
+        objRoot.addChild(background);
+        
+        //ziemia
+        Appearance wyglad_ziemia = new Appearance();
+        
+        TextureLoader loader = new TextureLoader("obrazki/trawka.gif",null);
+        ImageComponent2D image = loader.getImage();
+
+        Texture2D trawka = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
+                                        image.getWidth(), image.getHeight());
+
+        trawka.setImage(0, image);
+        trawka.setBoundaryModeS(Texture.WRAP);
+        trawka.setBoundaryModeT(Texture.WRAP);
+        
+        wyglad_ziemia.setTexture(trawka);
+        
+        Point3f[]  coords = new Point3f[4];
+        for(int i = 0; i< 4; i++)
+            coords[i] = new Point3f();
+
+        Point2f[]  tex_coords = new Point2f[4];
+        for(int i = 0; i< 4; i++)
+            tex_coords[i] = new Point2f();
+
+        coords[0].y = -0.7f;
+        coords[1].y = -0.7f;
+        coords[2].y = -0.7f;
+        coords[3].y = -0.7f;
+
+        coords[0].x = 12.0f;
+        coords[1].x = 12.0f;
+        coords[2].x = -12.0f;
+        coords[3].x = -12.0f;
+
+        coords[0].z = 11.0f;
+        coords[1].z = -13.0f;
+        coords[2].z = -13.0f;
+        coords[3].z = 11.0f;
+
+        tex_coords[0].x = 0.0f;
+        tex_coords[0].y = 0.0f;
+
+        tex_coords[1].x = 20.0f;
+        tex_coords[1].y = 0.0f;
+
+        tex_coords[2].x = 0.0f;
+        tex_coords[2].y = 20.0f;
+
+        tex_coords[3].x = 20.0f;
+        tex_coords[3].y = 20.0f;
+        
+        QuadArray qa_ziemia = new QuadArray(4, GeometryArray.COORDINATES|
+                GeometryArray.TEXTURE_COORDINATE_2);
+        qa_ziemia.setCoordinates(0,coords);
+
+        qa_ziemia.setTextureCoordinates(0, tex_coords);
+
+
+        Shape3D ziemia = new Shape3D(qa_ziemia);
+        ziemia.setAppearance(wyglad_ziemia);
+
+        objRoot.addChild(ziemia);
         
 	//cylinder1      
         Material material_walca = new Material(new Color3f(0.5f, 0.3f,0.2f), new Color3f(0.1f,0.1f,0.1f),
@@ -124,6 +212,24 @@ public class robot extends Applet implements ActionListener, KeyListener {
         animacja.addChild(transformacja_c);
 
         transformacja_c.addChild(cylinder);
+        
+        //podstawka
+        
+        Appearance  wygladpodstawki = new Appearance();
+         Material material_podstawki = new Material(new Color3f(0.2f, 0.2f,0.2f), new Color3f(0.2f,0.2f,0.2f),
+                                                new Color3f(0.5f, 0.3f, 0.2f), new Color3f(0.2f, 0.2f, 0.2f), 80.0f);
+        
+        wygladpodstawki.setMaterial(material_podstawki);
+        wygladpodstawki.setColoringAttributes(cattr);
+        Box podstawka = new Box(0.32f, 0.315f, 0.32f, wygladpodstawki);
+
+        Transform3D  p_podstawka   = new Transform3D();
+        p_podstawka.set(new Vector3f(1.65f,-0.38f,0.15f));
+
+        TransformGroup transformacja_podstawka = new TransformGroup(p_podstawka);
+        transformacja_podstawka.addChild(podstawka);
+        animacja.addChild(transformacja_podstawka);
+        
         
         //cylinder2
         Appearance  wygladCylindra2 = new Appearance();
@@ -162,9 +268,8 @@ public class robot extends Applet implements ActionListener, KeyListener {
         TransformGroup transformacja_b = new TransformGroup(p_boxa);
         transformacja_b.addChild(box);
         animowane.addChild(transformacja_b);
+   
 
-
-          // float dlugoscCylindra=1f;//>=0.2f
         //CYLINDER3
         Appearance  wygladCylindra3 = new Appearance();
         wygladCylindra3.setMaterial(material_walca2);
@@ -220,34 +325,126 @@ public class robot extends Applet implements ActionListener, KeyListener {
         TransformGroup transformacja_kciuk = new TransformGroup(p_kciuk);
         transformacja_kciuk.addChild(kciuk);
         animowane1.addChild(transformacja_kciuk);
-          // create the RotateBehavior	
-        
+
+        Group box1 = createBox(0.3, new Vector3d(1.5, 2, 0.0));
+	
+
+	animowane2.addChild(box1);
+	
 	BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
 						   100.0);
+        // create the RotateBehavior	
         awtBehavior = new RotateBehavior(animowane);
 	awtBehavior.setSchedulingBounds(bounds);
 	objRoot.addChild(awtBehavior);
 
 	return objRoot;
     }
+    
+    public class Boxx extends Shape3D {
+
+    public Boxx(double xsize, double ysize, double zsize) {
+	super();
+	double xmin = 0;
+	double xmax =  1;
+	double ymin = 0;
+	double ymax =  1;
+	double zmin = 0;
+	double zmax =  1;
+
+	QuadArray box = new QuadArray(24, QuadArray.COORDINATES);
+
+	Point3d verts[] = new Point3d[24];
+
+	// front face
+	verts[0] = new Point3d(xmax, ymin, zmax);
+	verts[1] = new Point3d(xmax, ymax, zmax);
+	verts[2] = new Point3d(xmin, ymax, zmax);
+	verts[3] = new Point3d(xmin, ymin, zmax);
+	// back face
+	verts[4] = new Point3d(xmin, ymin, zmin);
+	verts[5] = new Point3d(xmin, ymax, zmin);
+	verts[6] = new Point3d(xmax, ymax, zmin);
+	verts[7] = new Point3d(xmax, ymin, zmin);
+	// right face
+	verts[8] = new Point3d(xmax, ymin, zmin);
+	verts[9] = new Point3d(xmax, ymax, zmin);
+	verts[10] = new Point3d(xmax, ymax, zmax);
+	verts[11] = new Point3d(xmax, ymin, zmax);
+	// left face
+	verts[12] = new Point3d(xmin, ymin, zmax);
+	verts[13] = new Point3d(xmin, ymax, zmax);
+	verts[14] = new Point3d(xmin, ymax, zmin);
+	verts[15] = new Point3d(xmin, ymin, zmin);
+	// top face
+	verts[16] = new Point3d(xmax, ymax, zmax);
+	verts[17] = new Point3d(xmax, ymax, zmin);
+	verts[18] = new Point3d(xmin, ymax, zmin);
+	verts[19] = new Point3d(xmin, ymax, zmax);
+	// bottom face
+	verts[20] = new Point3d(xmin, ymin, zmax);
+	verts[21] = new Point3d(xmin, ymin, zmin);
+	verts[22] = new Point3d(xmax, ymin, zmin);
+	verts[23] = new Point3d(xmax, ymin, zmax);
+
+	box.setCoordinates(0, verts);
+        setGeometry(box);
+        
+        Appearance app= new Appearance();
+        
+        app.setCapability(app.ALLOW_COLORING_ATTRIBUTES_WRITE);
+        app.setCapability(app.ALLOW_MATERIAL_WRITE);
+        ColoringAttributes cattr2 = new ColoringAttributes();
+        cattr2.setShadeModel(ColoringAttributes.SHADE_GOURAUD);
+        cattr2.setColor(0.6f, 0.3f, 0.2f);
+     
+        Material material_walca2 = new Material(new Color3f(0.5f, 0.3f,0.2f), new Color3f(0.8f,0.2f,0.2f),
+                                                new Color3f(0.8f, 0.3f, 0.5f), new Color3f(0.2f, 0.2f, 0.2f), 20.0f);
+        app.setMaterial(material_walca2);
+        app.setColoringAttributes(cattr2);
+        
+        
+	setAppearance(app);
+    }
+}
+    private Group createBox(double scale, Vector3d pos) {
+	// Create a transform group node to scale and position the object.
+	Transform3D t = new Transform3D();
+	t.set(scale, pos);
+	TransformGroup objTrans = new TransformGroup(t);
+
+	// Create a simple shape leaf node and add it to the scene graph
+	Shape3D shape = new Boxx(1,1, 1.0);
+	objTrans.addChild(shape);        
+        
+        Appearance  app = shape.getAppearance();
+       
+       shape.setAppearance(app);
+       
+	// Create a new Behavior object that will perform the collision
+	// detection on the specified object, and add it into
+	// the scene graph.
+	CollisionDetector cd = new CollisionDetector(shape);
+	BoundingSphere bounds =
+	    new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0);
+	cd.setSchedulingBounds(bounds);
+
+	// Add the behavior to the scene graph
+	objTrans.addChild(cd);
+
+	return objTrans;
+    }
   
     public void keyPressed(KeyEvent e) {
 
-   if (e.getKeyChar()=='w') {if(yloc<=0.15f)yloc = yloc + speed*.01f;os=false;}
-
-   if (e.getKeyChar()=='s') {if(yloc>=-1.5f)yloc = yloc - speed*.01f;os=false;}
-   if (e.getKeyChar()=='a') {if(polozenieCylindra>=-0.37f)polozenieCylindra = polozenieCylindra - speed*.01f;
-   os=true;
-   }
-
-   if (e.getKeyChar()=='d') {if(polozenieCylindra<=0.37f)polozenieCylindra = polozenieCylindra + speed*.01f;
-   os=true;}
-   if (e.getKeyChar()=='q') {angle = angle + speed*.01f;
-   os=false;}
-
+   if (e.getKeyChar()=='w') {if((yloc + speed*.01f)<=0.15f)yloc = yloc + speed*.01f;os=false;}
+   if (e.getKeyChar()=='s') {if((yloc - speed*.01f)>=-1.5f)yloc = yloc - speed*.01f;os=false;}
+   if (e.getKeyChar()=='a') {if((polozenieCylindra - speed*.01f)>=-0.37f)polozenieCylindra = polozenieCylindra - speed*.01f;os=true;}
+   if (e.getKeyChar()=='d') {if((polozenieCylindra + speed*.01f)<=0.37f)polozenieCylindra = polozenieCylindra + speed*.01f;os=true;}
+   if (e.getKeyChar()=='q') {angle = angle + speed*.01f;os=false;}
    if (e.getKeyChar()=='e') {angle = angle - speed*.01f;os=false;}
-if (e.getKeyChar()=='p') {speed=speed*2f;}
-if (e.getKeyChar()=='o') {speed=speed/2f;}
+   if (e.getKeyChar()=='p') {speed=speed*2f;}
+   if (e.getKeyChar()=='o') {speed=speed/2f;}
 }
 
 public void keyReleased(KeyEvent e){
@@ -266,36 +463,122 @@ public void actionPerformed(ActionEvent e ) {
 
    // start timer when button is pressed
 
-   if (e.getSource()==go){
+  if (e.getSource()==go){
 
       if (!timer.isRunning()) {
-
-         timer.start();
-
+        angle=0;
+        speed=1;
+        polozenieCylindra=0;
+        yloc=0;
+        trans.rotY(angle);
+        trans.setTranslation(new Vector3f((float) sin(angle),yloc,(float) cos(angle)-1f)); 
+        animowane.setTransform(trans); 
+     
+        trans1.setTranslation(new Vector3f(polozenieCylindra,0, 0)); 
+        animowane1.setTransform(trans1);
+     
+        timer.start();
       }
-
-   }
-
-   else {
-
-       if(!os){
-     trans.rotY(angle);
-       trans.setTranslation(new Vector3f((float) sin(angle),yloc,(float) cos(angle)-1f)); 
-     animowane.setTransform(trans);  
-       }
-       if(os){
-        
-          
-          trans1.setTranslation(new Vector3f(polozenieCylindra+(float) sin(angle),yloc,(float) cos(angle)-1f)); 
-     animowane1.setTransform(trans1);   
-       }
- 
-
+    }
    
-
-   }
+    if (e.getSource()==reset){
+       angle=0;
+       speed=1;
+       polozenieCylindra=0;
+       yloc=0;
+       trans.rotY(angle);
+       polBox=2f;
+       polaczone=false;
+       trans.setTranslation(new Vector3f((float) sin(angle),yloc,(float) cos(angle)-1f)); 
+       animowane.setTransform(trans); 
+       
+       trans1.setTranslation(new Vector3f(polozenieCylindra,0, 0)); 
+       animowane1.setTransform(trans1);
+       
+    trans3.setTranslation(new Vector3f(0,0,0)); 
+    animowane2.setTransform(trans3);
+  
+    }
+    
+        if (e.getSource()==odtworz){
+            
+  
+    }
+    
+    if((polBox>-0.05f)&&(!polaczone))
+    {       polBox=polBox-0.01f;
+    trans2.setTranslation(new Vector3f(0,polBox-2,0)); 
+    animowane2.setTransform(trans2);
+    
+    }
+     
+    
+    if(!os){
+    trans.rotY(angle);
+    trans.setTranslation(new Vector3f((float) sin(angle),yloc,(float) cos(angle)-1f)); 
+    animowane.setTransform(trans); 
+    if(polaczone)
+    {
+        trans3.rotY(angle);
+    trans3.setTranslation(new Vector3f(0,yloc-0.8f,0)); 
+   animowane2.setTransform(trans3);
+    }
+    
+           }
+    if(os){   
+    trans1.setTranslation(new Vector3f(polozenieCylindra,0, 0)); 
+    animowane1.setTransform(trans1);   
+    
+     
+    
+    }
+    
 
 }
+
+public class CollisionDetector extends Behavior {
+    private  final Color3f highlightColor =
+	new Color3f(0.0f, 1.0f, 0.0f);
+    private  final ColoringAttributes highlight =
+	new ColoringAttributes(highlightColor,
+			       ColoringAttributes.SHADE_GOURAUD);
+
+    public boolean inCollision = false;
+    private Shape3D shape;
+    private ColoringAttributes shapeColoring;
+    private Appearance shapeAppearance;
+    private WakeupOnCollisionEntry wEnter;
+    private WakeupOnCollisionExit wExit;
+    public CollisionDetector(Shape3D s) {
+	shape = s;
+	shapeAppearance = shape.getAppearance();
+	shapeColoring = shapeAppearance.getColoringAttributes();
+	inCollision = false;
+    }
+
+    public void initialize() {
+	wEnter = new WakeupOnCollisionEntry(shape);
+	wExit = new WakeupOnCollisionExit(shape);
+	wakeupOn(wEnter);
+    }
+
+    public void processStimulus(Enumeration criteria) {
+	inCollision = !inCollision;
+ polaczone=true;
+	if (inCollision) {
+	    shapeAppearance.setColoringAttributes(highlight);
+           
+	    wakeupOn(wExit);
+            
+	}
+	else {
+            
+	    shapeAppearance.setColoringAttributes(shapeColoring);
+	    wakeupOn(wEnter);
+	}
+    }
+}
+
 
 
     public robot() {
@@ -321,16 +604,29 @@ public void actionPerformed(ActionEvent e ) {
    Panel p =new Panel();
 
    p.add(go);
+   p.add(reset);
+   p.add(nagraj);
+   p.add(odtworz);
+   
+      
 
    add("North",p);
 
    go.addActionListener(this);
-
    go.addKeyListener(this);
-
+   reset.addActionListener(this);
+   reset.addKeyListener(this);
+   nagraj.addActionListener(this);
+   nagraj.addKeyListener(this);
+   odtworz.addActionListener(this);
+   odtworz.addKeyListener(this);
+   
+   
      Transform3D przesuniecie_obserwatora = new Transform3D();
         przesuniecie_obserwatora.set(new Vector3f(0.0f,0.3f,6.0f));
 // Create a simple scene and attach it to the virtual universe
+
+
 
    BranchGroup scene = createSceneGraph();
 
@@ -339,6 +635,10 @@ public void actionPerformed(ActionEvent e ) {
    u.getViewingPlatform().getViewPlatformTransform().setTransform(przesuniecie_obserwatora);
 
    u.addBranchGraph(scene);
+   
+   OrbitBehavior orbit = new OrbitBehavior(c, OrbitBehavior.REVERSE_ROTATE); //obracanie obserwatora
+        orbit.setSchedulingBounds(new BoundingSphere());
+        u.getViewingPlatform().setViewPlatformBehavior(orbit);
       
     }
 
@@ -397,12 +697,5 @@ public void actionPerformed(ActionEvent e ) {
             }
         });
     }     
-    private javax.swing.JPanel drawingPanel;
-    private javax.swing.JPanel guiPanel;
-    private javax.swing.JButton rotateButton;
-    private javax.swing.JButton rotateButton1;
-    private javax.swing.JButton rotateButton3;
-    private javax.swing.JButton rotateButton4;
-    private javax.swing.JButton rotateButton5;
-    private javax.swing.JButton rotateButton6;
+
 }
