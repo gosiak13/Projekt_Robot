@@ -36,6 +36,8 @@ import com.sun.j3d.utils.image.TextureLoader;
 import javax.media.j3d.*;
 import javax.vecmath.*;
 import java.awt.GraphicsConfiguration;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  *
@@ -49,18 +51,21 @@ public class robot extends Applet implements ActionListener, KeyListener {
     private TransformGroup animacja;    
     private RotateBehavior awtBehavior;    
     public float dlugoscCylindra=1.5f;    
-    public float polozenieCylindra=0f;   
+    public float polozenieCylindra=0f;  
+    public float polozenieCylindrap=0f;
     private Transform3D trans= new Transform3D();
     private Transform3D trans3= new Transform3D();  
     private Transform3D trans1= new Transform3D();     
     private Transform3D p_cylindra3= new Transform3D();    
-    private float yloc=0f;    
+    private float yloc=0f;   
+    private float ylocp=0f; 
     private TransformGroup animowane;    
     private TransformGroup animowane2;    
     private TransformGroup animowane1;   
     Appearance  wygladCylindra3 = new Appearance();   
     private Cylinder cylinder3 = new Cylinder(0.05f, dlugoscCylindra, wygladCylindra3);    
     public float angle=0f;   
+    public float anglep=0f; 
     public boolean prawo;   
     private Button go = new Button("Go");    
     private Button reset = new Button("Reset");   
@@ -69,11 +74,15 @@ public class robot extends Applet implements ActionListener, KeyListener {
    
     TransformGroup transformacja_c3 = new TransformGroup(p_cylindra3);   
     private Transform3D trans2 = new Transform3D();   
-    private boolean os;   
+    private boolean os, nagrywanie;   
     public float speed=1f;   
     private float polBox=2f;   
     public boolean polaczone=false;    
     public Group box1;
+    
+    public Queue<Character> kolejka = new LinkedList();
+
+
     
     
     public BranchGroup createSceneGraph() {
@@ -436,13 +445,13 @@ public class robot extends Applet implements ActionListener, KeyListener {
     }
   
     public void keyPressed(KeyEvent e) {
-
-   if (e.getKeyChar()=='w') {if((yloc + speed*.01f)<=0.15f)yloc = yloc + speed*.01f;os=false;}
-   if (e.getKeyChar()=='s') {if((yloc - speed*.01f)>=-1.5f)yloc = yloc - speed*.01f;os=false;}
-   if (e.getKeyChar()=='a') {if((polozenieCylindra - speed*.01f)>=-0.37f)polozenieCylindra = polozenieCylindra - speed*.01f;os=true;}
-   if (e.getKeyChar()=='d') {if((polozenieCylindra + speed*.01f)<=0.37f)polozenieCylindra = polozenieCylindra + speed*.01f;os=true;}
-   if (e.getKeyChar()=='q') {angle = angle + speed*.01f;os=false;}
-   if (e.getKeyChar()=='e') {angle = angle - speed*.01f;os=false;}
+        
+   if (e.getKeyChar()=='w') {if((yloc + speed*.01f)<=0.15f)yloc = yloc + speed*.01f;os=false;if(nagrywanie==true) kolejka.add('w');}
+   if (e.getKeyChar()=='s') {if((yloc - speed*.01f)>=-1.5f)yloc = yloc - speed*.01f;os=false;if(nagrywanie==true) kolejka.add('s');}
+   if (e.getKeyChar()=='a') {if((polozenieCylindra - speed*.01f)>=-0.37f)polozenieCylindra = polozenieCylindra - speed*.01f;os=true;if(nagrywanie==true) kolejka.add('a');}
+   if (e.getKeyChar()=='d') {if((polozenieCylindra + speed*.01f)<=0.37f)polozenieCylindra = polozenieCylindra + speed*.01f;os=true;if(nagrywanie==true) kolejka.add('d');}
+   if (e.getKeyChar()=='q') {angle = angle + speed*.01f;os=false;if(nagrywanie==true) kolejka.add('q');}
+   if (e.getKeyChar()=='e') {angle = angle - speed*.01f;os=false;if(nagrywanie==true) kolejka.add('e');}
    if (e.getKeyChar()=='p') {speed=speed*2f;}
    if (e.getKeyChar()=='o') {speed=speed/2f;}
 }
@@ -500,9 +509,36 @@ public void actionPerformed(ActionEvent e ) {
   
     }
     
-        if (e.getSource()==odtworz){
-            
-  
+    if (e.getSource()==odtworz){
+        
+        yloc=ylocp;
+        polozenieCylindra=polozenieCylindrap;
+        angle=anglep;
+//        while (!kolejka.isEmpty()){
+//            System.out.format(String.valueOf(kolejka.poll()));
+//        }
+        
+        while (!kolejka.isEmpty()){
+        if (kolejka.poll()=='w'){if((yloc + speed*.01f)<=0.15f)yloc = yloc + speed*.01f;os=false;        while (!kolejka.isEmpty()){
+            System.out.format(String.valueOf(kolejka.poll()));
+        }}
+        else if (kolejka.poll()=='s'){if((yloc - speed*.01f)>=-1.5f)yloc = yloc - speed*.01f;os=false;}
+            else if (kolejka.poll()=='a'){ if((polozenieCylindra - speed*.01f)>=-0.37f)polozenieCylindra = polozenieCylindra - speed*.01f;os=true;}
+                else if (kolejka.poll()=='d') {if((polozenieCylindra + speed*.01f)<=0.37f)polozenieCylindra = polozenieCylindra + speed*.01f;os=true;}
+                    else if (kolejka.poll()=='q') {angle = angle + speed*.01f;os=false;}
+                        else if (kolejka.poll()=='e') {angle = angle - speed*.01f;os=false;}
+        
+        
+        }
+        
+        nagrywanie=false;
+    }
+    
+        if (e.getSource()==nagraj){
+        nagrywanie=true;
+        ylocp=yloc;
+        polozenieCylindrap=polozenieCylindra;
+        anglep=angle;
     }
     
     if((polBox>-0.05f)&&(!polaczone))
@@ -528,9 +564,7 @@ public void actionPerformed(ActionEvent e ) {
     if(os){   
     trans1.setTranslation(new Vector3f(polozenieCylindra,0, 0)); 
     animowane1.setTransform(trans1);   
-    
-     
-    
+
     }
     
 
